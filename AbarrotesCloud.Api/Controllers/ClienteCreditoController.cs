@@ -69,5 +69,31 @@ namespace AbarrotesCloud.Api.Controllers
 
         }
 
+
+        [HttpDelete("{clienteId}")]
+        public async Task<IActionResult> EliminarClienteId(Guid clienteId, [FromQuery] Guid tiendaId, [FromQuery] Guid usuarioId)
+        {
+            try
+            {
+             
+                var usuario = await _context.Usuarios.FindAsync(usuarioId);
+                if (usuario == null)
+                    return Unauthorized("Usuario no reconocido.");
+                if (usuario.Rol != "Admin")
+                    return StatusCode(403, "Acceso denegado: Solo los administradores pueden borrar productos.");
+                if (usuario.Tiendaid != tiendaId)
+                    return StatusCode(403, "No tienes permiso para borrar productos de otra tienda.");
+
+                var cliente = await _context.Clientescreditos.FirstOrDefaultAsync(c => c.Id == clienteId && c.Tiendaid == tiendaId);
+                if (cliente == null) return NotFound("Cliente no encontrado.");
+                _context.Clientescreditos.Remove(cliente);
+                await _context.SaveChangesAsync();
+                return Ok(new { mensaje = "Cliente eliminado" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
+        }
     }
 }
