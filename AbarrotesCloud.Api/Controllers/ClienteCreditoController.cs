@@ -75,7 +75,7 @@ namespace AbarrotesCloud.Api.Controllers
         {
             try
             {
-             
+
                 var usuario = await _context.Usuarios.FindAsync(usuarioId);
                 if (usuario == null)
                     return Unauthorized("Usuario no reconocido.");
@@ -89,6 +89,33 @@ namespace AbarrotesCloud.Api.Controllers
                 _context.Clientescreditos.Remove(cliente);
                 await _context.SaveChangesAsync();
                 return Ok(new { mensaje = "Cliente eliminado" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.ToString());
+            }
+        }
+
+
+        [HttpPut("{clienteId}")]
+        public async Task<IActionResult> ActualizarCliente(Guid clienteId, [FromBody] ClienteUpdateDTO clienteCreditoDTO, [FromQuery] Guid tiendaId, [FromQuery] Guid usuarioId)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(usuarioId);
+                if (usuario == null)
+                    return Unauthorized("Usuario no reconocido.");
+                if (usuario.Rol != "Admin")
+                    return StatusCode(403, "Acceso denegado: Solo los administradores pueden actualizar productos.");
+                if (usuario.Tiendaid != tiendaId)
+                    return StatusCode(403, "No tienes permiso para actualizar productos de otra tienda.");
+                var cliente = await _context.Clientescreditos.FirstOrDefaultAsync(c => c.Id == clienteId && c.Tiendaid == tiendaId);
+                if (cliente == null) return NotFound("Cliente no encontrado.");
+                cliente.Nombrecompleto = clienteCreditoDTO.NombreCompleto;
+                cliente.Telefono = clienteCreditoDTO.Telefono;
+                cliente.Limitecredito = clienteCreditoDTO.LimiteCredito;
+                await _context.SaveChangesAsync();
+                return Ok(cliente);
             }
             catch (Exception ex)
             {

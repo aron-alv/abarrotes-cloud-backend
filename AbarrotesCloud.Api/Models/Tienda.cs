@@ -24,6 +24,12 @@ public partial class Tienda
     [StringLength(50)]
     public string? Estatus { get; set; }
 
+    [Column("estatuslicencia", TypeName = "character varying")]
+    public string? Estatuslicencia { get; set; }
+
+    [Column("fechavencimiento")]
+    public DateTime? Fechavencimiento { get; set; }
+
     [InverseProperty("Tienda")]
     public virtual ICollection<Abonoscredito> Abonoscreditos { get; set; } = new List<Abonoscredito>();
 
@@ -38,6 +44,9 @@ public partial class Tienda
 
     [InverseProperty("Tienda")]
     public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
+
+    [InverseProperty("Tienda")]
+    public virtual ICollection<Suscripcione> Suscripciones { get; set; } = new List<Suscripcione>();
 
     [InverseProperty("Tienda")]
     public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();

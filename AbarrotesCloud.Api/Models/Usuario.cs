@@ -28,6 +28,10 @@ public partial class Usuario
     [StringLength(4)]
     public string? Pinventa { get; set; }
 
+    [Column("email")]
+    [StringLength(255)]
+    public string? Email { get; set; }
+
     [InverseProperty("Usuario")]
     public virtual ICollection<Abonoscredito> Abonoscreditos { get; set; } = new List<Abonoscredito>();
 

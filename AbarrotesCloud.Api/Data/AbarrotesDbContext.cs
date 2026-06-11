@@ -26,7 +26,11 @@ public partial class AbarrotesDbContext : DbContext
 
     public virtual DbSet<Kardex> Kardices { get; set; }
 
+    public virtual DbSet<Listablanca> Listablancas { get; set; }
+
     public virtual DbSet<Producto> Productos { get; set; }
+
+    public virtual DbSet<Suscripcione> Suscripciones { get; set; }
 
     public virtual DbSet<Tienda> Tiendas { get; set; }
 
@@ -34,6 +38,9 @@ public partial class AbarrotesDbContext : DbContext
 
     public virtual DbSet<Venta> Ventas { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=54322;Database=postgres;Username=postgres;Password=postgres;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -135,6 +142,14 @@ public partial class AbarrotesDbContext : DbContext
                 .HasConstraintName("kardex_usuarioid_fkey");
         });
 
+        modelBuilder.Entity<Listablanca>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("listablanca_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
+            entity.Property(e => e.FechaAgregado).HasDefaultValueSql("now()");
+        });
+
         modelBuilder.Entity<Producto>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("productos_pkey");
@@ -154,12 +169,25 @@ public partial class AbarrotesDbContext : DbContext
                 .HasConstraintName("productos_tiendaid_fkey");
         });
 
+        modelBuilder.Entity<Suscripcione>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("suscripciones_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
+            entity.Property(e => e.Fechapago).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Tienda).WithMany(p => p.Suscripciones)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("suscripciones_tiendaid_fkey");
+        });
+
         modelBuilder.Entity<Tienda>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("tiendas_pkey");
 
             entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Estatus).HasDefaultValueSql("'Activo'::character varying");
+            entity.Property(e => e.Estatuslicencia).HasDefaultValueSql("'activo'::character varying");
             entity.Property(e => e.Fecharegistro).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -181,6 +209,7 @@ public partial class AbarrotesDbContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Estatus).HasDefaultValueSql("'Completada'::character varying");
             entity.Property(e => e.Fechaventa).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Metodopago).HasDefaultValueSql("'Efectivo'::character varying");
 
             entity.HasOne(d => d.Clientecredito).WithMany(p => p.Venta).HasConstraintName("ventas_clientecreditoid_fkey");
 
